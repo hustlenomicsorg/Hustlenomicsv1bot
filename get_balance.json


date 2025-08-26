@@ -1,0 +1,1 @@
+{"balance": <% User.attrs.balance || 0 %>}
