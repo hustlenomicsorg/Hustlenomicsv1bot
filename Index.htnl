@@ -1,0 +1,76 @@
+<html>
+<head>
+  <title>Telegram Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 20px; }
+    #entry-form, #app-content { margin: 20px; }
+    button { padding: 10px 20px; margin: 10px; background: #0088cc; color: white; border: none; cursor: pointer; }
+    #admin-panel { margin-top: 20px; border: 1px solid #ccc; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome to the Mini App</h1>
+  <div id="entry-form">
+    <input type="password" id="entry-key" placeholder="Enter key to access">
+    <button onclick="checkKey()">Submit</button>
+  </div>
+  <div id="app-content" style="display: none;">
+    <button onclick="showProfile()">Profile</button>
+    <button onclick="getBalance()">Balance (INR)</button>
+    <div id="output"></div>
+    <div id="admin-panel" style="display: none;">
+      <h2>Admin Panel</h2>
+      <input type="number" id="target-user-id" placeholder="User ID">
+      <input type="number" id="new-balance" placeholder="New Balance (INR)">
+      <button onclick="setBalance()">Update Balance</button>
+    </div>
+    <button onclick="Telegram.WebApp.close()">Close App</button>
+  </div>
+  <script>
+    const ENTRY_KEY = "secretkey"; // Change this to your desired key
+    const ADMIN_ID = 123456789; // Replace with your Telegram user ID (run Bot.sendMessage(user.telegram_id) in a command to get it)
+
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    const userId = tg.initDataUser.id;
+    if (userId === ADMIN_ID) {
+      document.getElementById('admin-panel').style.display = 'block';
+    }
+
+    function checkKey() {
+      const key = document.getElementById('entry-key').value;
+      if (key === ENTRY_KEY) {
+        document.getElementById('entry-form').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+      } else {
+        alert('Incorrect key!');
+      }
+    }
+
+    function showProfile() {
+      const output = document.getElementById('output');
+      output.innerHTML = `Name: ${tg.initDataUser.first_name} <br> ID: ${userId}`;
+    }
+
+    function getBalance() {
+      fetch(WebApp.getUrl({ command: "get_balance" })) // Calls the get_balance command
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('output').innerHTML = `Balance: ₹${data.balance} INR`;
+        })
+        .catch(error => alert('Error fetching balance'));
+    }
+
+    function setBalance() {
+      const targetId = document.getElementById('target-user-id').value;
+      const amount = document.getElementById('new-balance').value;
+      fetch(WebApp.getUrl({ command: "set_balance", options: { target_id: targetId, amount: amount } }))
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => alert('Error updating balance'));
+    }
+  </script>
+</body>
+</html>
